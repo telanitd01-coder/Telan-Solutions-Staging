@@ -6,7 +6,6 @@ import CulturePage from './components/CulturePage';
 
 // --- Shared Components ---
 
-
 const SectionHeader = ({ title, subtitle, light = false, boldSubtitle = false }: { title: string; subtitle?: string; light?: boolean; boldSubtitle?: boolean }) => (
   <div className="mb-12 text-center">
     <motion.h2 
@@ -80,7 +79,7 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Desktop Links */}
+       {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
              link.isPage ? (
@@ -851,104 +850,155 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form input and feedback states
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [highestEducation, setHighestEducation] = useState('College Graduate');
-  const [shortSummary, setShortSummary] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [showMailtoFallback, setShowMailtoFallback] = useState(false);
+  // Form Field State Bindings
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    highestEducation: 'College Graduate',
+    branch: 'Pasig City (Main Office)',
+    coverLetter: ''
+  });
+
+  // Upload and Submission Progress Tracking
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [submittingPhase, setSubmittingPhase] = useState<'idle' | 'reading' | 'uploading' | 'submitting' | 'saving'>('idle');
+  const [submissionProgress, setSubmissionProgress] = useState(0);
 
   const handleApply = (job: typeof jobs[0]) => {
     setSelectedJob(job);
     setIsApplicationSubmitted(false);
     setUploadedFile(null);
     setIsDragging(false);
-    setFullName('');
-    setEmail('');
-    setPhone('');
-    setHighestEducation('College Graduate');
-    setShortSummary('');
-    setSubmitError(null);
-    setShowMailtoFallback(false);
-  };
-
-  const getBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
+    setUploadError(null);
+    setSubmissionError(null);
+    setSubmittingPhase('idle');
+    setSubmissionProgress(0);
+    setFormData({
+      fullName: '',
+      email: '',
+      phone: '',
+      highestEducation: 'College Graduate',
+      branch: job.location === 'Pasig City' ? 'Pasig City (Main Office)' : 'NCR Region',
+      coverLetter: ''
     });
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-   if (!selectedJob) return;
+    setSubmissionError(null);
+    
+    // Explicit Validation
+    if (!uploadedFile) {
+      setUploadError('Please choose or drag-and-drop a valid resume file (PDF, DOC, DOCX) to apply.');
+      return;
+    }
 
-    setIsSubmitting(true);
-    setSubmitError(null);
+    setSubmittingPhase('reading');
+    setSubmissionProgress(15);
 
-    let fileData = "";
-    let filename = "";
+    const reader = new FileReader();
+    
+    reader.onerror = () => {
+      setSubmissionError('Unable to read and process the specified file. Please try again.');
+      setSubmittingPhase('idle');
+      setSubmissionProgress(0);
+    };
 
-    if (uploadedFile) {
+    reader.onload = async (event) => {
       try {
-        fileData = await getBase64(uploadedFile);
-        filename = uploadedFile.name;
-      } catch (err) {
-        console.error("Failed to parse file to Base64:", err);
-      }
-    }
+        if (!event.target || !event.target.result) {
+          throw new Error('Internal file reader was unable to extract file contents.');
+        }
 
-    try {
-      const response = await fetch("/api/apply", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName,
-          email,
-          phone,
-          highestEducation,
-          shortSummary,
-          jobTitle: selectedJob.title,
-          fileData,
-          filename
-        }),
-      });
+        setSubmissionProgress(45);
+        setSubmittingPhase('uploading');
 
-      const data = await response.json();
-      if (response.ok && data.success) {
-    setIsApplicationSubmitted(true);
-        setFullName('');
-        setEmail('');
-        setPhone('');
-        setHighestEducation('College Graduate');
-        setShortSummary('');
-        setUploadedFile(null);
-        setShowMailtoFallback(false);
-    setTimeout(() => {
-      setSelectedJob(null);
-      setIsApplicationSubmitted(false);
-        }, 6000);
-      } else {
-        setSubmitError(data.message || "Failed to submit application. Please try again.");
-        setShowMailtoFallback(true);
+        const base64String = (event.target.result as string).split(',')[1];
+        
+        const payload = {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          highestEducation: formData.highestEducation,
+          branch: formData.branch,
+          position: selectedJob?.title || 'General Applicant',
+          message: formData.coverLetter,
+          fileData: base64String,
+          fileName: uploadedFile.name,
+          fileType: uploadedFile.type || 'application/pdf'
+        };
+
+        setSubmissionProgress(75);
+        setSubmittingPhase('submitting');
+
+        const scriptUrl = (import.meta as any).env?.VITE_GOOGLE_APPS_SCRIPT_URL;
+
+        if (!scriptUrl || scriptUrl.trim() === '') {
+          throw new Error('Google Apps Script URL is not configured. Please create and define VITE_GOOGLE_APPS_SCRIPT_URL inside the app secrets panel or env configuration.');
+        }
+
+        setSubmissionProgress(90);
+        setSubmittingPhase('saving');
+
+        const response = await fetch(scriptUrl, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`The backend service returned a server error status ${response.status}. Please check your connection.`);
+        }
+
+        const result = await response.json();
+
+        if (result && result.status === 'success') {
+          setSubmissionProgress(100);
+          setIsApplicationSubmitted(true);
+          setSubmittingPhase('idle');
+        } else {
+          throw new Error(result.message || 'The Google Web App integration failed to record details correctly.');
+        }
+
+      } catch (err: any) {
+        setSubmissionError(err.message || 'An unexpected failure happened during CV submission. Please check network logs.');
+        setSubmittingPhase('idle');
+        setSubmissionProgress(0);
       }
-    } catch (err) {
-      setSubmitError("Could not connect to the recruitment system. Please check your internet connection.");
-      setShowMailtoFallback(true);
-    } finally {
-      setIsSubmitting(false);
-    }
+    };
+
+    reader.readAsDataURL(uploadedFile);
   };
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      const name = file.name;
+      const size = file.size;
+      const extension = name.substring(name.lastIndexOf('.')).toLowerCase();
+
+      if (!['.pdf', '.doc', '.docx'].includes(extension)) {
+        setUploadError('Invalid format. Please upload PDF, DOC, or DOCX documents only.');
+        setUploadedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      const limitBytes = 10 * 1024 * 1024; // 10MB limit
+      if (size > limitBytes) {
+        setUploadError('File is too large. Maximum size allowed of resume uploads is 10MB.');
+        setUploadedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      setUploadError(null);
+      setUploadedFile(file);
     }
   };
 
@@ -966,7 +1016,28 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setUploadedFile(e.dataTransfer.files[0]);
+      const file = e.dataTransfer.files[0];
+      const name = file.name;
+      const size = file.size;
+      const extension = name.substring(name.lastIndexOf('.')).toLowerCase();
+
+      if (!['.pdf', '.doc', '.docx'].includes(extension)) {
+        setUploadError('Invalid format. Please upload PDF, DOC, or DOCX documents only.');
+        setUploadedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      const limitBytes = 10 * 1024 * 1024; // 10MB limit
+      if (size > limitBytes) {
+        setUploadError('File is too large. Maximum size allowed of resume uploads is 10MB.');
+        setUploadedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      setUploadError(null);
+      setUploadedFile(file);
     }
   };
 
@@ -1027,7 +1098,9 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setSelectedJob(null)}
+              onClick={() => {
+                if (submittingPhase === 'idle') setSelectedJob(null);
+              }}
               className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
             />
             
@@ -1040,7 +1113,10 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
               {/* Job Details Sidebar */}
               <div className="md:w-5/12 bg-slate-50 p-8 border-b md:border-b-0 md:border-r border-slate-200">
                 <button 
-                  onClick={() => setSelectedJob(null)}
+                  onClick={() => {
+                    if (submittingPhase === 'idle') setSelectedJob(null);
+                  }}
+                  disabled={submittingPhase !== 'idle'}
                   className="mb-8 p-2 hover:bg-slate-200 rounded-full transition-colors md:hidden absolute top-4 right-4"
                 >
                   <X className="w-6 h-6 text-slate-500" />
@@ -1064,7 +1140,7 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
                   <div>
                     <h4 className="font-bold text-brand-blue mb-2 text-sm uppercase tracking-wider">Key Responsibilities</h4>
                     <ul className="space-y-2">
-                      {selectedJob.responsibilities.map((item, idx) => (
+                       {selectedJob.responsibilities.map((item, idx) => (
                         <li key={idx} className="flex items-start text-xs text-slate-600">
                           <CheckCircle2 className="w-3.5 h-3.5 text-brand-gold mr-2 shrink-0 mt-0.5" />
                           {item}
@@ -1075,234 +1151,234 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
                 </div>
               </div>
 
-              {/* Application Form */}
-              <div className="md:w-7/12 p-8">
-                <button 
-                   onClick={() => !isSubmitting && setSelectedJob(null)}
-                  disabled={isSubmitting}
-                  className="absolute top-6 right-6 p-2 hover:bg-slate-100 rounded-full transition-colors hidden md:block disabled:opacity-50"
-                >
-                  <X className="w-6 h-6 text-slate-500" />
-                </button>
+              {/* Application Form & Loading Screen Selector */}
+              <div className="md:w-7/12 p-8 relative flex flex-col justify-between">
+                {submittingPhase === 'idle' && (
+                  <button 
+                    onClick={() => setSelectedJob(null)}
+                    className="absolute top-6 right-6 p-2 hover:bg-slate-100 rounded-full transition-colors hidden md:block"
+                  >
+                    <X className="w-6 h-6 text-slate-500" />
+                  </button>
+                )}
 
                 {!isApplicationSubmitted ? (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="mb-6">
-                      <h4 className="text-2xl font-bold text-brand-blue">Application Form</h4>
-                      <p className="text-slate-500">Please fill in your details to apply for this position.</p>
-                    </div>
-                    
-                    {submitError && (
-                      <div className="p-4 bg-red-50 border border-red-150 rounded-2xl text-red-600 text-sm font-medium flex items-start space-x-2.5 shadow-sm">
-                        <span className="text-base select-none leading-none">⚠️</span>
-                        <span>{submitError}</span>
+                  submittingPhase !== 'idle' ? (
+                    // Beautiful custom progress-indicator component
+                    <div className="flex flex-col items-center justify-center py-16 px-4 space-y-6 text-center h-full my-auto">
+                      <div className="relative w-24 h-24 flex items-center justify-center">
+                        <div className="absolute inset-0 rounded-full border-4 border-slate-100 animate-pulse" />
+                        <div className="absolute inset-0 rounded-full border-4 border-t-brand-gold animate-spin border-r-transparent border-b-transparent border-l-transparent" />
+                        <FileText className="w-8 h-8 text-brand-gold animate-bounce" />
                       </div>
-                    )}
+                      
+                      <div className="space-y-2">
+                        <h4 className="text-xl font-bold text-brand-blue">
+                          {submittingPhase === 'reading' && 'Preparing File...'}
+                          {submittingPhase === 'uploading' && 'Saving Resume to Google Drive...'}
+                          {submittingPhase === 'submitting' && 'Integrating Sheets Data...'}
+                          {submittingPhase === 'saving' && 'Finalizing Confirmation Email...'}
+                        </h4>
+                        <p className="text-slate-500 text-xs max-w-xs mx-auto">
+                          Please keep your window open. We are registering your application profile secure-envelope packets.
+                        </p>
+                      </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Full Name</label>
-                        <input 
-                          required 
-                          type="text" 
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          disabled={isSubmitting}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all disabled:opacity-60 disabled:bg-slate-50" 
-                          placeholder="Juan Dela Cruz" 
+                      <div className="w-full max-w-sm bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
+                        <div 
+                          className="bg-brand-gold h-full rounded-full transition-all duration-300 ease-out" 
+                          style={{ width: `${submissionProgress}%` }}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Email Address</label>
-                         <input 
-                          required 
-                          type="email" 
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          disabled={isSubmitting}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all disabled:opacity-60 disabled:bg-slate-50" 
-                          placeholder="juan@example.com" 
-                        />
-                      </div>
+                      <span className="text-sm font-semibold text-brand-blue">{submissionProgress}%</span>
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Phone Number</label>
-                         <input 
-                          required 
-                          type="tel" 
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          disabled={isSubmitting}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all disabled:opacity-60 disabled:bg-slate-50" 
-                          placeholder="+63 9XX XXX XXXX" 
-                        />
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="mb-4">
+                        <h4 className="text-2xl font-bold text-brand-blue">Application Form</h4>
+                        <p className="text-slate-500 text-xs">Please provide your details below. Resumes will be recorded directly to HR databases.</p>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Highest Education</label>
-                         <select 
-                          value={highestEducation}
-                          onChange={(e) => setHighestEducation(e.target.value)}
-                          disabled={isSubmitting}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent bg-white disabled:opacity-65 disabled:bg-slate-50"
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">Full Name</label>
+                          <input 
+                            required 
+                            type="text" 
+                            value={formData.fullName}
+                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all font-medium" 
+                            placeholder="Juan Dela Cruz" 
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">Email Address</label>
+                          <input 
+                            required 
+                            type="email" 
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all font-medium" 
+                            placeholder="juan@example.com" 
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">Phone Number</label>
+                          <input 
+                            required 
+                            type="tel" 
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all font-medium" 
+                            placeholder="+63 9XX XXX XXXX" 
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-slate-700">Highest Education</label>
+                          <select 
+                            value={formData.highestEducation}
+                            onChange={(e) => setFormData({ ...formData, highestEducation: e.target.value })}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent bg-white font-medium"
+                          >
+                            <option>College Graduate</option>
+                            <option>Undergraduate</option>
+                            <option>High School</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700">Preferred Office / Branch</label>
+                        <select 
+                          value={formData.branch}
+                          onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent bg-white font-medium"
                         >
-                          <option value="College Graduate">College Graduate</option>
-                          <option value="Undergraduate">Undergraduate</option>
-                          <option value="High School">High School</option>
+                          <option>Pasig City (Main Office)</option>
+                          <option>NCR Region</option>
+                          <option>Cebu Branch</option>
+                          <option>Davao Branch</option>
                         </select>
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-slate-700">Upload CV / Resume</label>
-                                            
-                      {/* Hidden File Input */}
-                      <input 
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        accept=".pdf,.doc,.docx"
-                        className="hidden"
-                        id="resume-file-input"
-                        disabled={isSubmitting}
-                      />
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700">Upload CV / Resume</label>
+                        
+                        {/* Hidden File Input */}
+                        <input 
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileChange}
+                          accept=".pdf,.doc,.docx"
+                          className="hidden"
+                          id="resume-file-input"
+                        />
 
-                      <div 
-                        onClick={() => !isSubmitting && handleBrowseFiles()}
-                        onDragOver={(e) => !isSubmitting && handleDragOver(e)}
-                        onDragLeave={(e) => !isSubmitting && handleDragLeave(e)}
-                        onDrop={(e) => !isSubmitting && handleDrop(e)}
-                        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 relative ${
-                          isSubmitting ? 'cursor-not-allowed opacity-60 bg-slate-50' : 'cursor-pointer group'
-                        } ${
-                          isDragging 
-                            ? 'border-brand-gold bg-brand-gold/10 scale-[1.02]' 
-                            : uploadedFile 
-                              ? 'border-green-400 bg-green-50/30' 
-                              : 'border-slate-200 hover:border-brand-gold bg-transparent'
-                        }`}
-                        id="file-upload-dropzone"
-                      >
-                        {uploadedFile ? (
-                          <div className="flex flex-col items-center">
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-3">
-                         <FileText className="w-6 h-6" />
+                        <div 
+                          onClick={handleBrowseFiles}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          className={`border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer group relative ${
+                            isDragging 
+                              ? 'border-brand-gold bg-brand-gold/10 scale-[1.01]' 
+                              : uploadedFile 
+                                ? 'border-green-400 bg-green-50/10' 
+                                : 'border-slate-200 hover:border-brand-gold bg-transparent'
+                          }`}
+                          id="file-upload-dropzone"
+                        >
+                          {uploadedFile ? (
+                            <div className="flex flex-col items-center">
+                              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-2">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <p className="text-xs font-bold text-slate-800 max-w-[280px] truncate" title={uploadedFile.name}>
+                                {uploadedFile.name}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">
+                                {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB
+                              </p>
+                              <button
+                                type="button"
+                                onClick={handleRemoveFile}
+                                className="mt-3 px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center space-x-1"
+                                id="remove-file-btn"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Remove File</span>
+                              </button>
                             </div>
-                            <p className="text-sm font-semibold text-slate-800 max-w-[280px] truncate" title={uploadedFile.name}>
-                              {uploadedFile.name}
-                            </p>
-                            <p className="text-xs text-slate-400 mt-1">
-                              {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB
-                            </p>
-                            {!isSubmitting && (
-                            <button
-                              type="button"
-                              onClick={handleRemoveFile}
-                              className="mt-4 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center space-x-1"
-                              id="remove-file-btn"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Remove File</span>
-                            </button>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="transition-all duration-300">
-                            <Rocket className={`w-8 h-8 mx-auto mb-2 transition-colors ${
-                              isDragging ? 'text-brand-gold animate-pulse' : 'text-slate-300 group-hover:text-brand-gold'
-                            }`} />
-                        <p className="text-sm font-medium text-slate-600">
-                              {isDragging ? 'Drop your file here!' : 'Click to upload or drag and drop'}
-                            </p>
-                        <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">PDF, DOCX (Max 5MB)</p>
-                             </div>
+                          ) : (
+                            <div className="transition-all duration-300">
+                              <Rocket className={`w-7 h-7 mx-auto mb-1 transition-colors ${
+                                isDragging ? 'text-brand-gold animate-pulse' : 'text-slate-300 group-hover:text-brand-gold'
+                              }`} />
+                              <p className="text-xs font-semibold text-slate-600">
+                                {isDragging ? 'Drop your resume now' : 'Click to select or drag & drop'}
+                              </p>
+                              <p className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wider font-semibold">PDF, DOC, DOCX up to 10MB</p>
+                            </div>
+                          )}
+                        </div>
+                        {uploadError && (
+                          <p className="text-[11px] text-red-500 font-bold mt-1" id="upload-error-msg">
+                            ⚠️ {uploadError}
+                          </p>
                         )}
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-slate-700">Why should we hire you? (Short summary)</label>
-                      <textarea 
-                        rows={3} 
-                        value={shortSummary}
-                        onChange={(e) => setShortSummary(e.target.value)}
-                        disabled={isSubmitting}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all disabled:opacity-60 disabled:bg-slate-50" 
-                        placeholder="Tell us something about your experience..."
-                      ></textarea>
-                    </div>
-
-                    {showMailtoFallback && (
-                      <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl text-amber-950 text-sm space-y-4 shadow-sm">
-                        <div className="flex items-start space-x-2.5">
-                          <span className="text-xl select-none leading-none">💡</span>
-                          <div className="space-y-1">
-                            <strong className="block font-bold text-amber-900">Static Host Detected &amp; Ready</strong>
-                            <p className="text-slate-750 text-xs leading-relaxed">
-                              Because this site is running as a static web application on your hosting environment, it cannot process server-side code. Don't worry! We've automatically unlocked direct email delivery. Click below to submit your pre-filled information straight to <strong className="text-brand-blue">it.test@telanlaw.com</strong>.
-                            </p>
-                          </div>
-                        </div>
-                        <div className="pt-1 flex flex-col sm:flex-row gap-2.5">
-                          <a 
-                            href={`mailto:it.test@telanlaw.com?subject=${encodeURIComponent(`Job Application: ${fullName || 'Applicant'} - ${selectedJob.title}`)}&body=${encodeURIComponent(
-                              `Dear Telan Solutions HR Team,\n\nI am pleased to submit my application for the position of "${selectedJob.title}".\n\nPersonal Details:\n------------------------------------------\n- Full Name: ${fullName || '[Name]'}\n- Email: ${email || '[Email]'}\n- Phone: ${phone || '[Phone]'}\n- Highest Education: ${highestEducation}\n\nCandidate Statement:\n------------------------------------------\n${shortSummary || '[Summary]'}\n\nIMPORTANT ATTACHMENT ACTION REQUIRED:\n------------------------------------------\n[Applicant] Please remember to check that your resume file (${uploadedFile ? uploadedFile.name : 'PDF/DOCX resume file'}) is attached to this email before sending!\n\nBest regards,\n${fullName || 'Applicant'}`
-                            )}`}
-                            className="flex-1 px-5 py-3.5 bg-brand-gold hover:bg-brand-gold/90 text-white rounded-xl text-sm font-bold uppercase tracking-wider text-center transition-all duration-300 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg active:scale-[0.98]"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Mail className="w-4 h-4" />
-                            <span>Dispatch Application to it.test@telanlaw.com</span>
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowMailtoFallback(false);
-                              setSubmitError(null);
-                            }}
-                            className="px-4 py-3 bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-center transition-all duration-300"
-                          >
-                            Reset Form
-                          </button>
-                        </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700">Message / Cover Letter</label>
+                        <textarea 
+                          rows={2} 
+                          value={formData.coverLetter}
+                          onChange={(e) => setFormData({ ...formData, coverLetter: e.target.value })}
+                          className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all font-medium" 
+                          placeholder="Why do you wish to join the Telan Solutions team?"
+                        />
                       </div>
-                    )}
 
-                    <button 
-                      type="submit" 
-                      disabled={isSubmitting}
-                      className="btn-primary w-full py-4 text-lg font-bold flex items-center justify-center space-x-2 disabled:bg-slate-300 disabled:border-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          <span>Sending Application...</span>
-                        </>
-                      ) : (
-                        <span>Submit My Application</span>
+                      {submissionError && (
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl space-y-1 text-xs text-red-700" id="submission-error-alert">
+                          <div className="flex items-center space-x-1.5 font-bold">
+                            <X className="w-3.5 h-3.5 text-red-500" />
+                            <span>Uploading Failed</span>
+                          </div>
+                          <p className="text-[10px] text-red-600 font-medium leading-relaxed">{submissionError}</p>
+                        </div>
                       )}
-                    </button>
-                  </form>
+
+                      <button type="submit" className="btn-primary w-full py-3 text-base font-bold">
+                        Submit My Application
+                      </button>
+                    </form>
+                  )
                 ) : (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="h-full flex flex-col items-center justify-center text-center p-8"
+                    className="h-full flex flex-col items-center justify-center text-center p-8 my-auto"
                   >
-                     <div className="w-20 h-20 bg-green-150/10 text-green-600 rounded-full flex items-center justify-center border-2 border-green-500/20 mb-6">
-                      <CheckCircle2 className="w-10 h-10 text-green-600" />
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6">
+                      <CheckCircle2 className="w-8 h-8" />
                     </div>
-                    <h4 className="text-3.5xl font-bold text-brand-blue mb-4">Application Sent!</h4>
-                    <p className="text-slate-650 text-sm leading-relaxed max-w-sm mx-auto">
-                      Thank you for applying for the <span className="font-bold text-brand-blue">{selectedJob.title}</span> position.<br /><br />
-                      A copy of your complete application and CV has been forwarded directly to <strong className="text-brand-blue">it.test@telanlaw.com</strong>.<br /><br />
-                      Our human resources department will review your profile shortly and reach out.
+                    <h4 className="text-2xl font-bold text-brand-blue mb-3">Application Logged!</h4>
+                    <p className="text-slate-600 text-sm max-w-sm mx-auto leading-relaxed">
+                      Thank you for applying to be our next <span className="font-bold text-brand-blue">{selectedJob.title}</span>! 
                     </p>
+                    <p className="text-slate-500 text-xs max-w-xs mx-auto mt-2 leading-relaxed">
+                      A validation and receipt confirmation email has been sent to <span className="font-semibold text-brand-blue">{formData.email}</span>, and files recorded to Google Sheets database.
+                    </p>
+                    <button 
+                      onClick={() => setSelectedJob(null)}
+                      className="mt-6 px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
+                    >
+                      Close Window
+                    </button>
                   </motion.div>
                 )}
               </div>
