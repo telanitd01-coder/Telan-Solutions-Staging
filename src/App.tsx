@@ -70,7 +70,7 @@ const Navbar = () => {
         <Link to="/" className="flex items-center space-x-3 group cursor-pointer">
           <div className="w-12 h-12 rounded-full overflow-hidden shadow-lg shadow-brand-gold/10">
             <img 
-              src="https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/logo.png" 
+              src="https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/logo.png" 
               alt="Telan Solutions Logo" 
               className="w-full h-full object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
             />
@@ -271,7 +271,7 @@ const About = () => (
             <motion.img 
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
-              src="https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/telan-bldg.png"  
+              src="https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/telan-bldg.png"  
               alt="Telan Solutions Office Interior"
               className="w-full h-full object-cover rounded-3xl"
               loading="lazy"
@@ -407,7 +407,7 @@ const WhyWorkWithUs = () => {
       name: "Edwin Devilles",
       role: "Team Manager, Joined 2016",
       images: [
-        "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/edwin_devilles.png",
+        "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/edwin_devilles.png",
 
       ]
     },
@@ -416,7 +416,7 @@ const WhyWorkWithUs = () => {
       name: "Michael Yamson",
       role: "Team Manager, Joined 2009",
       images: [
-        "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/yamson.png",
+        "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/yamson.png",
         
       ]
     },
@@ -425,7 +425,7 @@ const WhyWorkWithUs = () => {
       name: "Avelino Tabangcura",
       role: "Account Officer, Joined 2000",
       images: [
-        "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/avelino-images.png",
+        "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/avelino-images.png",
         
       ]
     },
@@ -434,7 +434,7 @@ const WhyWorkWithUs = () => {
       name: "Violet Miranda",
       role: "Admin Officer, Joined 2010",
       images: [
-        "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/violet-images.jpg",
+        "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/violet-images.jpg",
         
       ]
     },
@@ -443,7 +443,7 @@ const WhyWorkWithUs = () => {
       name: "Alvin Mangulad",
       role: "Senior Network Administrator, Joined 2001",
       images: [
-        "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/src/images/alvin-images.png",
+        "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/src/images/alvin-images.png",
         
       ]
     }
@@ -614,22 +614,22 @@ const WhyWorkWithUs = () => {
 const ExperienceLifeSection = () => {
   const slides = [
     {
-      image: "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/events/xparty/Cparty_intro.JPG",
+      image: "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/events/xparty/Cparty_intro.JPG",
       title: "Christmas Party 2026",
       description: "Telan Glamorous Christmas, Rock the season. Shine the night.",
     },
     {
-      image: "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/events/halloween/H1.jpg",
+      image: "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/events/halloween/H1.jpg",
       title: "Halloween Party",
       description: ".",
     },
     {
-      image: "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/events/sportfest/Sportfest_intro.jpg",
+      image: "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/events/sportfest/Sportfest_intro.jpg",
       title: "Sportfest",
       description: "Telan yearly sports festival.",
     },
     {
-      image: "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/events/training/t1.jpg",
+      image: "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/events/training/t1.jpg",
       title: "Training",
       description: ".",
     }
@@ -1375,7 +1375,7 @@ const Footer = () => (
           <Link to="/" className="flex items-center space-x-3 group cursor-pointer">
             <div className="w-12 h-12 rounded-full overflow-hidden shadow-lg shadow-brand-gold/10 border border-white/10">
               <img 
-                src="https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/logo.png" 
+                src="https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/logo.png" 
                 alt="Telan Solutions Logo" 
                 className="w-full h-full object-cover rounded-full"
               />
@@ -1801,7 +1801,7 @@ const AboutUsPage = () => (
              <div className="sticky top-32">
                 <div className="aspect-[4/5] rounded-[48px] overflow-hidden shadow-2xl border-2 border-slate-50">
                    <img 
-                      src="https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/telan-bldg.png" 
+                      src="https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/telan-bldg.png" 
                       className="w-full h-full object-cover" 
                       alt="Telan Solutions Office"
                    />
@@ -1835,7 +1835,7 @@ const AboutUsPage = () => (
           >
             <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border-4 border-white z-10">
               <img 
-                src="https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/director_rt1.jpg" 
+                src="https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/director_rt1.jpg" 
                 alt="Reyman I. Ilagan" 
                 className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
@@ -1896,16 +1896,16 @@ const AboutUsPage = () => (
         >
           {/* Seamless loop of images to create marquee effect */}
           {[
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/BPI.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/Jaccs.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/Maybank.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/Orico.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/PBB.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/PSBANK.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/RCBC.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/SBC.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/PNB.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/east-west.png"
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/BPI.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/Jaccs.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/Maybank.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/Orico.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/PBB.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/PSBANK.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/RCBC.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/SBC.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/PNB.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/east-west.png"
           ].map((url, i) => (
             <div key={`img-1-${i}`} className="w-40 h-24 md:w-56 md:h-32 rounded-xl overflow-hidden shadow-sm border border-slate-100 shrink-0 group">
               <img 
@@ -1918,16 +1918,16 @@ const AboutUsPage = () => (
           ))}
           {/* Repeat for seamless transition */}
           {[
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/BPI.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/Jaccs.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/Maybank.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/Orico.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/PBB.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/PSBANK.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/RCBC.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/SBC.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/PNB.png",
-            "https://raw.githubusercontent.com/telanidt02-coder/Telan-Solutions/refs/heads/main/images/east-west.png"
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/BPI.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/Jaccs.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/Maybank.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/Orico.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/PBB.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/PSBANK.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/RCBC.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/SBC.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/PNB.png",
+            "https://raw.githubusercontent.com/telanitd01-coder/Telan-Solutions-Staging/refs/heads/main/images/east-west.png"
           ].map((url, i) => (
             <div key={`img-2-${i}`} className="w-40 h-24 md:w-56 md:h-32 rounded-xl overflow-hidden shadow-sm border border-slate-100 shrink-0 group">
               <img 
@@ -1946,7 +1946,7 @@ const AboutUsPage = () => (
 
 export default function App() {
   return (
-    <BrowserRouter basename="/Telan-Solutions">
+    <BrowserRouter basename="/Telan-Solutions-Staging">
       <div className="min-h-screen">
         <Navbar />
         <Routes>
