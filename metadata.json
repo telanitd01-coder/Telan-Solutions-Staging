@@ -1,0 +1,8 @@
+{
+  "name": "Telan Solutions Careers",
+  "description": "Leading receivables management solutions and career opportunities in the Philippines.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}
