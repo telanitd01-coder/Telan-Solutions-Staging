@@ -936,10 +936,10 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
         setSubmissionProgress(75);
         setSubmittingPhase('submitting');
 
-        const scriptUrl = (import.meta as any).env?.VITE_GOOGLE_APPS_SCRIPT_URL;
+        const scriptUrl = ((import.meta as any).env?.VITE_GOOGLE_APPS_SCRIPT_URL || '').trim() || 'https://script.google.com/macros/s/AKfycbw_VI6RXvGqMPo2kVhMNiIWNMkuhtGmiJMK_MLVWyMn4HKANLtDTslMLEeOU172PCBH/exec';
 
         if (!scriptUrl || scriptUrl.trim() === '') {
-          throw new Error('Google Apps Script URL is not configured. Please create and define VITE_GOOGLE_APPS_SCRIPT_URL inside the app secrets panel or env configuration.');
+          throw new Error('Google Apps Script URL is not configured. Please define VITE_GOOGLE_APPS_SCRIPT_URL in your .env or code config.');
         }
 
         setSubmissionProgress(90);
