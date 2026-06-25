@@ -1342,15 +1342,6 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
                         />
                       </div>
 
-                      {submissionError && (
-                        <div className="p-3 bg-red-50 border border-red-100 rounded-xl space-y-1 text-xs text-red-700" id="submission-error-alert">
-                          <div className="flex items-center space-x-1.5 font-bold">
-                            <X className="w-3.5 h-3.5 text-red-500" />
-                            <span>Uploading Failed</span>
-                          </div>
-                          <p className="text-[10px] text-red-600 font-medium leading-relaxed">{submissionError}</p>
-                        </div>
-                      )}
 
                       <button type="submit" className="btn-primary w-full py-3 text-base font-bold">
                         Submit My Application
