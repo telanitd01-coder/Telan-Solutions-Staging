@@ -860,6 +860,8 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
     coverLetter: ''
   });
 
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  
   // Upload and Submission Progress Tracking
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -875,6 +877,7 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
     setSubmissionError(null);
     setSubmittingPhase('idle');
     setSubmissionProgress(0);
+    setSubmittedEmail('');
     setFormData({
       fullName: '',
       email: '',
@@ -959,6 +962,21 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
 
         if (result && result.status === 'success') {
           setSubmissionProgress(100);
+          setSubmittedEmail(formData.email);
+          setFormData({
+            fullName: '',
+            email: '',
+            phone: '',
+            highestEducation: 'College Graduate',
+            branch: selectedJob?.location === 'Pasig City' ? 'Pasig City (Main Office)' : 'NCR Region',
+            coverLetter: ''
+          });
+          setUploadedFile(null);
+          setUploadError(null);
+          setSubmissionError(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
           setIsApplicationSubmitted(true);
           setSubmittingPhase('idle');
         } else {
@@ -1362,7 +1380,7 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
                       Thank you for applying to be our next <span className="font-bold text-brand-blue">{selectedJob.title}</span>! 
                     </p>
                     <p className="text-slate-500 text-xs max-w-xs mx-auto mt-2 leading-relaxed">
-                      A validation and receipt confirmation email has been sent to <span className="font-semibold text-brand-blue">{formData.email}</span>, and files recorded to Google Sheets database.
+                     A validation and receipt confirmation email has been sent to <span className="font-semibold text-brand-blue">{submittedEmail || 'your email'}</span>, and files recorded to Google Sheets database.
                     </p>
                     <button 
                       onClick={() => setSelectedJob(null)}
