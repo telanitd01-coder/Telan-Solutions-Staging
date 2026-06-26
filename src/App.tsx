@@ -968,6 +968,9 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+
+     // Auto-clear/refresh captcha immediately upon submission
+    generateCaptcha();
     
     setSubmittingPhase('reading');
     setSubmissionProgress(15);
