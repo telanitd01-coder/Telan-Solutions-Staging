@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, ChevronLeft, ChevronRight, MapPin, Phone, Mail, Globe, Award, Users, BookOpen, TrendingUp, CheckCircle2, Quote, Sparkles, Rocket, Heart, Play, Pause, Volume2, Maximize, ExternalLink, Calendar, Building2, Target, Server, ShieldCheck, Cpu, Wifi, Database, Network, Lock, MessageCircle, PhoneCall, BarChart3, LayoutDashboard, Wallet, UserCog, Search, CheckSquare, Navigation2, Smile, Zap, MessageSquareText, Trash2, FileText } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight, MapPin, Phone, Mail, Globe, Award, Users, BookOpen, TrendingUp, CheckCircle2, Quote, Sparkles, Rocket, Heart, Play, Pause, Volume2, Maximize, ExternalLink, Calendar, Building2, Target, Server, ShieldCheck, Cpu, Wifi, Database, Network, Lock, MessageCircle, PhoneCall, BarChart3, LayoutDashboard, Wallet, UserCog, Search, CheckSquare, Navigation2, Smile, Zap, MessageSquareText, Trash2, FileText, RefreshCw } from 'lucide-react';
 import { useState, useEffect, useRef, ChangeEvent, FormEvent, DragEvent, MouseEvent } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import CulturePage from './components/CulturePage';
@@ -862,6 +862,22 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
 
   const [submittedEmail, setSubmittedEmail] = useState('');
   
+  // CAPTCHA Security Bindings
+  const [captchaCode, setCaptchaCode] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
+
+  const generateCaptcha = () => {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaCode(code);
+    setCaptchaInput('');
+    setCaptchaError(null);
+  };
+  
   // Upload and Submission Progress Tracking
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -878,6 +894,7 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
     setSubmittingPhase('idle');
     setSubmissionProgress(0);
     setSubmittedEmail('');
+    generateCaptcha();
     setFormData({
       fullName: '',
       email: '',
@@ -898,6 +915,9 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
     setSubmittingPhase('idle');
     setSubmissionProgress(0);
     setSubmittedEmail('');
+    setCaptchaCode('');
+    setCaptchaInput('');
+    setCaptchaError(null);
     setFormData({
       fullName: '',
       email: '',
@@ -914,10 +934,16 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setSubmissionError(null);
+    setCaptchaError(null);
     
     // Explicit Validation
     if (!uploadedFile) {
       setUploadError('Please choose or drag-and-drop a valid resume file (PDF, DOC, DOCX) to apply.');
+      return;
+    }
+    
+     if (captchaInput.trim().toLowerCase() !== captchaCode.toLowerCase()) {
+      setCaptchaError('Incorrect security verification code. Please type the characters exactly as shown.');
       return;
     }
 
@@ -1389,7 +1415,80 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
                           placeholder="Why do you wish to join the Telan Solutions team?"
                         />
                       </div>
+                      {/* Security Verification CAPTCHA */}
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-700 tracking-wide uppercase flex items-center">
+                            <span className="w-1.5 h-1.5 bg-brand-gold rounded-full mr-1.5 inline-block" />
+                            Security Verification
+                          </label>
+                          <span className="text-[10px] text-slate-400 font-semibold select-none">
+                            Case-Insensitive
+                          </span>
+                        </div>
 
+                        <div className="flex items-center gap-3">
+                          {/* Visual Captcha Canvas Simulation */}
+                          <div 
+                            className="relative flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 font-mono text-xl font-black tracking-[0.25em] text-slate-700 select-none overflow-hidden h-12 flex-1"
+                            style={{
+                              backgroundImage: 'linear-gradient(45deg, #f1f5f9 25%, #e2e8f0 25%, #e2e8f0 50%, #f1f5f9 50%, #f1f5f9 75%, #e2e8f0 75%, #e2e8f0 100%)',
+                              backgroundSize: '20px 20px',
+                            }}
+                          >
+                            {/* Let's render the text with visual distortions */}
+                            <span className="relative z-10 drop-shadow-md text-brand-blue flex gap-1">
+                              {captchaCode.split('').map((char, index) => {
+                                const rotates = ['rotate-[-6deg]', 'rotate-[4deg]', 'rotate-[-3deg]', 'rotate-[8deg]', 'rotate-[-8deg]'];
+                                const offsets = ['translate-y-[-2px]', 'translate-y-[1px]', 'translate-y-[-1px]', 'translate-y-[2px]', 'translate-y-[-3px]'];
+                                const weights = ['font-bold', 'font-black', 'font-extrabold', 'font-medium', 'font-semibold'];
+                                return (
+                                  <span 
+                                    key={index} 
+                                    className={`inline-block ${rotates[index % rotates.length]} ${offsets[index % offsets.length]} ${weights[index % weights.length]}`}
+                                  >
+                                    {char}
+                                  </span>
+                                );
+                              })}
+                            </span>
+                            
+                            {/* Grid/lines simulation over text */}
+                            <div className="absolute inset-0 z-20 pointer-events-none opacity-20" style={{
+                              backgroundImage: 'linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)',
+                              backgroundSize: '10px 10px'
+                            }} />
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={generateCaptcha}
+                            className="p-3 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-500 hover:text-brand-blue transition-colors flex items-center justify-center h-12 w-12 shrink-0 group"
+                            title="Generate a new security code"
+                          >
+                            <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-1">
+                          <input 
+                            required
+                            type="text"
+                            value={captchaInput}
+                            onChange={(e) => {
+                              setCaptchaInput(e.target.value);
+                              setCaptchaError(null);
+                            }}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent transition-all font-medium bg-white" 
+                            placeholder="Type the verification code shown above"
+                          />
+                          {captchaError && (
+                            <p className="text-[11px] text-red-500 font-semibold flex items-center gap-1 mt-1">
+                              ⚠️ {captchaError}
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
                       <button type="submit" className="btn-primary w-full py-3 text-base font-bold">
                         Submit My Application
