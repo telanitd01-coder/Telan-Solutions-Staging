@@ -393,7 +393,6 @@ const MissionVision = () => (
             </p>
          </div>
           </div>
-          <div className="mt-12 h-1.5 w-32 bg-brand-gold rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
         </motion.div>
       </div>
     </div>
