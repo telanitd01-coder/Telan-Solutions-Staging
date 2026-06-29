@@ -385,7 +385,7 @@ const MissionVision = () => (
           <h3 className="text-3xl font-bold text-white mb-8 italic">Our <span className="text-brand-gold underline decoration-brand-gold/30 underline-offset-8">Vision</span></h3>
           <blockquote className="relative">
             <Quote className="absolute -top-6 -left-6 w-12 h-12 text-brand-gold/10" />
-            <p className="text-2xl md:text-3xl font-bold text-white leading-tight italic tracking-tight">
+            <p className="text-blue-50 text-xl leading-relaxed font-light">
               To be the country's most admired receivables management solutions provider, driven by excellence, innovation, compliance, and client success.
             </p>
           </blockquote>
