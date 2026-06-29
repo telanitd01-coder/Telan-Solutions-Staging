@@ -374,7 +374,7 @@ const MissionVision = () => (
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-gradient-to-br from-brand-gold/5 to-white/5 backdrop-blur-xl border border-white/10 p-10 rounded-[40px] shadow-2xl flex flex-col justify-center relative overflow-hidden"
+          className="bg-gradient-to-br from-brand-gold/5 to-white/5 backdrop-blur-xl border border-white/10 p-10 rounded-[40px] shadow-2xl relative overflow-hidden"
         >
           {/* Subtle Glow */}
           <div className="absolute -top-20 -right-20 w-40 h-40 bg-brand-gold/10 rounded-full blur-[60px]" />
@@ -383,12 +383,16 @@ const MissionVision = () => (
             <Sparkles className="w-8 h-8" />
           </div>
           <h3 className="text-3xl font-bold text-white mb-8 italic">Our <span className="text-brand-gold underline decoration-brand-gold/30 underline-offset-8">Vision</span></h3>
-          <blockquote className="relative">
-            <Quote className="absolute -top-6 -left-6 w-12 h-12 text-brand-gold/10" />
+          <div className="space-y-8">
+            <div className="flex items-start space-x-5">
+              <div className="mt-1.5 w-6 h-6 rounded-full bg-brand-gold/20 flex items-center justify-center shrink-0">
+                <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
+              </div>
             <p className="text-blue-50 text-xl leading-relaxed font-light">
               To be the country's most admired receivables management solutions provider, driven by excellence, innovation, compliance, and client success.
             </p>
-          </blockquote>
+         </div>
+          </div>
           <div className="mt-12 h-1.5 w-32 bg-brand-gold rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
         </motion.div>
       </div>
