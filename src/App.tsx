@@ -69,7 +69,7 @@ const Navbar = () => {
         <Link to="/" className="flex items-center space-x-3 group cursor-pointer">
           <div className="w-12 h-12 rounded-full overflow-hidden shadow-lg shadow-brand-gold/10">
             <img 
-              src="./src/alvin-images.png" 
+              src="https://drive.google.com/file/d/1i0I-rcZoCZOM_1TcNPi1-iOJSWEp0hgR/view" 
               alt="Telan Solutions Logo" 
               className="w-full h-full object-cover rounded-full transition-transform duration-500 group-hover:scale-110"
             />
