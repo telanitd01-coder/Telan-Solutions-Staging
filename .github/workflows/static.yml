@@ -1,19 +1,21 @@
 name: Deploy Vite Site to Pages
- 
+
 on:
   push:
-    branches: ["main"] # Change to "master" if your default branch is named master
+    branches: ["main"]
   workflow_dispatch:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
   group: "pages"
   cancel-in-progress: true
- 
+
 jobs:
   deploy:
     environment:
@@ -21,30 +23,40 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # PRODUCTION CACHE ADJUSTMENT
+      - name: Cache Node Modules
+        id: vite-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          # Change 'v1' to 'v2' right here whenever you want to force-reset the cache
+          key: ${{ runner.os }}-vite-v1-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-v1-
+
       - name: Install dependencies
+        # Only runs a clean install if the cache wasn't found
+        if: steps.vite-cache.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Build Project
-        # This injects your secret key safely during the compilation process
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Build Vite Project
         run: npm run build
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: './dist' # Ensures Vite's default build output folder is targeted
 
       - name: Deploy to GitHub Pages
         id: deployment
