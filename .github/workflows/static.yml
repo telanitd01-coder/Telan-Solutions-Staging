@@ -24,12 +24,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Node Modules
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.npm
-        # Changing "v1" to "v2" forces GitHub to ignore the old cache and make a new one
-        key: ${{ runner.os }}-node-v2-${{ hashFiles('**/package-lock.json') }}
+         path: ~/.npm # Adjust the path to specify what folder to cache
+         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Adjust the key to change cache busting
+         restore-keys: |
+           ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm ci
