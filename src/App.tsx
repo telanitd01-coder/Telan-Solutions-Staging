@@ -933,88 +933,124 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
       fileInputRef.current.value = '';
     }
   };
-
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
   
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setSubmitStatus(null);
-
-  try {
-    let fileData = "";
-    let fileName = "";
-    let fileType = "";
-
-    // Convert the file to base64 string if it exists
-    if (formData.resume) {
-      fileName = formData.resume.name;
-      fileType = formData.resume.type;
-      
-      const reader = new FileReader();
-      fileData = await new Promise<string>((resolve) => {
-        reader.onload = () => {
-          const base64 = (reader.result as string).split(",")[1];
-          resolve(base64);
-        };
-        reader.readAsDataURL(formData.resume!);
-      });
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setSubmissionError(null);
+    setCaptchaError(null);
+    
+    // Explicit Validation
+    if (!uploadedFile) {
+      setUploadError('Please choose or drag-and-drop a valid resume file (PDF, DOC, DOCX) to apply.');
+      return;
+    }
+    
+     if (captchaInput.trim().toLowerCase() !== captchaCode.toLowerCase()) {
+      setCaptchaError('Incorrect security verification code. Please type the characters exactly as shown.');
+      return;
     }
 
-    // Construct the direct JSON payload expected by your Apps Script + n8n script
-    const payload = {
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      position: formData.position,
-      branch: formData.branch,
-      message: formData.message,
-      fileData: fileData,
-      fileName: fileName,
-      fileType: fileType
+    // Capture values into local constants first so we can clear inputs synchronously
+    const currentFormData = { ...formData };
+    const currentUploadedFile = uploadedFile;
+    const currentJobTitle = selectedJob?.title || 'General Applicant';
+
+    // Store the email for the confirmation view
+    setSubmittedEmail(currentFormData.email);
+
+    // Auto-clear the form fields and uploaded file immediately
+    setFormData({
+      fullName: '',
+      email: '',
+      phone: '',
+      highestEducation: 'College Graduate',
+      branch: 'Pasig City (Main Office)',
+      coverLetter: ''
+    });
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+     // Auto-clear/refresh captcha immediately upon submission
+    generateCaptcha();
+    
+    setSubmittingPhase('reading');
+    setSubmissionProgress(15);
+
+    const reader = new FileReader();
+    
+    reader.onerror = () => {
+      setSubmissionError('Unable to read and process the specified file. Please try again.');
+      setSubmittingPhase('idle');
+      setSubmissionProgress(0);
     };
 
-    // Send payload directly to your custom Apps Script backend
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8", // Using text/plain prevents CORS preflight blocks in Apps Script
-      },
-      body: JSON.stringify(payload),
-    });
+    reader.onload = async (event) => {
+      try {
+        if (!event.target || !event.target.result) {
+          throw new Error('Internal file reader was unable to extract file contents.');
+        }
 
-    const result = await response.json();
+        setSubmissionProgress(45);
+        setSubmittingPhase('uploading');
 
-    if (result.status === "success") {
-      setSubmitStatus({
-        success: true,
-        message: "Thank you! Your application has been successfully submitted and forwarded to our recruitment team.",
-      });
-      // Clear form settings
-      setFormData({
-        fullName: "",
-        email: "",
-        phone: "",
-        position: "",
-        branch: "",
-        message: "",
-        resume: null,
-      });
-    } else {
-      throw new Error(result.message || "Failed to process application.");
-    }
+        const base64String = (event.target.result as string).split(',')[1];
+        
+        const payload = {
+          fullName: currentFormData.fullName,
+          email: currentFormData.email,
+          phone: currentFormData.phone,
+          highestEducation: currentFormData.highestEducation,
+          branch: currentFormData.branch,
+          position: currentJobTitle,
+          message: currentFormData.coverLetter,
+          fileData: base64String,
+          fileName: currentUploadedFile.name,
+          fileType: currentUploadedFile.type || 'application/pdf'
+        };
 
-  } catch (error) {
-    console.error("Submission error:", error);
-    setSubmitStatus({
-      success: false,
-      message: "Something went wrong. Please try again or email your resume directly to our HR team.",
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+        setSubmissionProgress(75);
+        setSubmittingPhase('submitting');
+
+        const scriptUrl = (import.meta as any).env?.VITE_GOOGLE_APPS_SCRIPT_URL;
+
+        if (!scriptUrl || scriptUrl.trim() === '') {
+          throw new Error('Google Apps Script URL is not configured. Please create and define VITE_GOOGLE_APPS_SCRIPT_URL inside the app secrets panel or env configuration.');
+        }
+
+        setSubmissionProgress(90);
+        setSubmittingPhase('saving');
+
+        const response = await fetch(scriptUrl, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`The backend service returned a server error status ${response.status}. Please check your connection.`);
+        }
+
+        const result = await response.json();
+
+        if (result && result.status === 'success') {
+          setSubmissionProgress(100);
+          setIsApplicationSubmitted(true);
+          setSubmittingPhase('idle');
+        } else {
+          throw new Error(result.message || 'The Google Web App integration failed to record details correctly.');
+        }
+
+      } catch (err: any) {
+        setSubmissionError(err.message || 'An unexpected failure happened during CV submission. Please check network logs.');
+        setSubmittingPhase('idle');
+        setSubmissionProgress(0);
+      }
+    };
 
    reader.readAsDataURL(currentUploadedFile);
   };
