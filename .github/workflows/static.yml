@@ -47,7 +47,10 @@ jobs:
         if: steps.vite-cache.outputs.cache-hit != 'true'
         run: npm ci
 
+      # INJECTING THE N8N WEBHOOK URL HERE
       - name: Build Vite Project
+        env:
+          VITE_N8N_WEBHOOK_URL: ${{ secrets.VITE_N8N_WEBHOOK_URL }}
         run: npm run build
 
       - name: Setup Pages
