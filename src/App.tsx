@@ -1012,21 +1012,25 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
 
         setSubmissionProgress(75);
         setSubmittingPhase('submitting');
-
+        
+        const n8nUrl = (import.meta as any).env?.VITE_N8N_WEBHOOK_URL;
         const scriptUrl = (import.meta as any).env?.VITE_GOOGLE_APPS_SCRIPT_URL;
+        const targetUrl = n8nUrl || scriptUrl;
 
-        if (!scriptUrl || scriptUrl.trim() === '') {
-          throw new Error('Google Apps Script URL is not configured. Please create and define VITE_GOOGLE_APPS_SCRIPT_URL inside the app secrets panel or env configuration.');
+        if (!targetUrl || targetUrl.trim() === '') {
+          throw new Error('No backend application receiver URL is configured. Please create and define VITE_N8N_WEBHOOK_URL or VITE_GOOGLE_APPS_SCRIPT_URL inside the app secrets panel or env configuration.');
         }
 
+        const isN8n = !!(n8nUrl && n8nUrl.trim() !== '');
+        
         setSubmissionProgress(90);
         setSubmittingPhase('saving');
 
-        const response = await fetch(scriptUrl, {
+        const response = await fetch(targetUrl, {
           method: 'POST',
           mode: 'cors',
           headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
+            'Content-Type': isN8n ? 'application/json' : 'text/plain;charset=utf-8'
           },
           body: JSON.stringify(payload)
         });
@@ -1034,9 +1038,14 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
         if (!response.ok) {
           throw new Error(`The backend service returned a server error status ${response.status}. Please check your connection.`);
         }
-
+        
+        if (isN8n) {
+          // n8n returns standard success statuses. Any successful HTTP response from n8n is assumed a success.
+          setSubmissionProgress(100);
+          setIsApplicationSubmitted(true);
+          setSubmittingPhase('idle');
+        } else {
         const result = await response.json();
-
         if (result && result.status === 'success') {
           setSubmissionProgress(100);
           setIsApplicationSubmitted(true);
@@ -1044,6 +1053,7 @@ const JobOpenings = ({ limit }: { limit?: number }) => {
         } else {
           throw new Error(result.message || 'The Google Web App integration failed to record details correctly.');
         }
+       }
 
       } catch (err: any) {
         setSubmissionError(err.message || 'An unexpected failure happened during CV submission. Please check network logs.');
